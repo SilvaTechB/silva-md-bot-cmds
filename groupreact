@@ -1,0 +1,78 @@
+export async function before(m, { conn }) {
+  const ownerID = 'owner@s.whatsapp.net'; // Replace with the actual owner ID
+  const specialUsers = ['254700143167@s.whatsapp.net', '254743706010@s.whatsapp.net', '254755257907@s.whatsapp.net']; // List of users for automatic reactions
+  
+  // Check if the message is in a group
+  if (!m.isGroup) return;
+
+  // 1. Check if the owner is mentioned in the group
+  if (m.mentionedJid.includes(ownerID)) {
+    // Reply to the mention with a custom message
+    const replyMessage = `Hello! You mentioned the owner. How can I assist you?`;
+    await conn.reply(m.chat, replyMessage, m, { mentions: [m.sender] });
+
+    // React to the message with a specified emoji
+    try {
+      await conn.sendMessage(m.chat, {
+        react: {
+          text: '🏠', // Reaction emoji for owner mention
+          key: m.key
+        }
+      });
+    } catch (e) {
+      console.error("Error sending reaction for owner mention:", e);
+    }
+  }
+
+  // 2. Automatically react to every message in the group with a random emoji
+  const emojis = [
+    '😊', '😍', '🥰', '😘', '😗', '😙', '😚', '😻', '💖', '💗', '💓', '💞', '💕', '💘', '💝', '💟',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🤍', '💯', '🎉', '✨', '🎈', '🎀', '🎁', '🌸', '🌹',
+    '💐', '🌻', '🌼', '🌷', '🌞', '🌈', '🍀', '💎', '💫', '⭐', '🌟', '🥳', '😇', '🙌', '🙏', '👏',
+    '👍', '👋', '🤗', '😄', '😁', '😆', '😃', '😀', '😹', '😸', '😺', '🤩', '🥹', '😊', '🤭', '🥳',
+    '💌', '💋', '💌', '💍', '🤍', '🫶', '🤲', '👐', '💏', '💑', '👨‍❤️‍👨', '👩‍❤️‍👨', '👩‍❤️‍👩', '💪',
+    '🫂', '🤗', '🫡', '🤟', '🤝', '🤞', '🎆', '🎇', '🎊', '😚', '💓', '💗', '💖', '💞', '💕', '💘', '💝',
+    '💯', '🔥', '🌺', '🌿', '🍃', '🕊️', '🥂', '🍾', '🍻', '🥰', '🥳', '🧡', '💙', '💜', '💚', '🫶',
+    '🤗', '🥳', '💯', '🎇', '🎆', '🌹', '🌻', '🌼', '🌸', '💖', '💘', '💕', '💞', '💝', '💓', '💛',
+    '❤️', '🫂', '💍', '💏', '💑', '👩‍❤️‍👨', '💌', '🧡', '💛', '💚', '💙', '💜', '🤎', '🤍', '💯', '🎉',
+    '✨', '🎈', '🎀', '🎁', '🌸', '🌹', '💐', '🌻', '🌼', '🌷', '🌞', '🌈', '🍀', '💎', '💫', '⭐', '🌟',
+    '🥳', '😇', '🙌', '🙏', '👏', '👍', '👋', '🤗', '😄', '😁', '😆', '😃', '😀', '😹', '😸', '😺', '🤩',
+    '🥹', '😊', '🤭', '🥳', '💌', '💋', '💌', '💍', '🤍', '🫶', '🤲', '👐', '💏', '💑', '👨‍❤️‍👨', '👩‍❤️‍👨',
+    '👩‍❤️‍👩', '💪', '🫂', '🤗', '🫡', '🤟', '🤝', '🤞', '🎆', '🎇', '🎊', '😚', '💓', '💗', '💖', '💞',
+    '💕', '💘', '💝', '💯', '🔥', '🌺', '🌿', '🍃', '🕊️', '🥂', '🍾', '🍻', '🥰', '🥳', '🧡', '💙', '💜',
+    '💚', '🫶', '🤗', '🥳', '💯', '🎇', '🎆', '🌹', '🌻', '🌼', '🌸', '💖', '💘', '💕', '💞', '💝', '💓',
+    '💛', '❤️', '🫂', '💍', '💏', '💑', '👩‍❤️‍👨', '💌', '🧡', '💛', '💚', '💙', '💜', '🤎', '🤍', '💯',
+    '🎉', '✨', '🎈', '🎀', '🎁', '🌸', '🌹', '💐', '🌻', '🌼', '🌷', '🌞', '🌈', '🍀', '💎', '💫', '⭐'
+  ]; // Array of 30 possible emojis for reactions
+  const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]; // Pick a random emoji
+
+  try {
+    await conn.sendMessage(m.chat, {
+      react: {
+        text: randomEmoji, // Random reaction emoji
+        key: m.key
+      }
+    });
+  } catch (e) {
+    console.error("Error sending reaction for group message:", e);
+  }
+
+  // 3. If the bot is tagged, send an audio message with a greeting
+  const audioUrl = 'https://github.com/SilvaTechB/silva-md-bot/media/Alive.mp3'; // Audio URL
+
+  if (m.mentionedJid.includes(conn.user.jid)) {
+    try {
+      await conn.sendMessage(m.chat, {
+        audio: { url: audioUrl },
+        caption: 'Hello, did you just tag me?', // Message to send with the audio
+        mimetype: 'audio/mp4', // Correct MIME type for MP3
+        ptt: true, // Set to true for "press-to-talk" format (audio message)
+      });
+    } catch (e) {
+      console.error("Error sending audio message when tagged:", e);
+    }
+  }
+}
+
+// Command settings (no command needed as this is auto-triggered)
+export const disabled = false;
